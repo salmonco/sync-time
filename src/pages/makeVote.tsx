@@ -1,8 +1,9 @@
+import DateSelector from "@component/components/DateSelector";
 import { useState } from "react";
 
 export default function MakeVote() {
   const [voteName, setVoteName] = useState("");
-  // const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [startTime, setStartTime] = useState(9);
   const [endTime, setEndTime] = useState(22);
   const [places, setPlaces] = useState<string[]>([]);
@@ -48,7 +49,19 @@ export default function MakeVote() {
         onChange={(e) => setVoteName(e.target.value)}
         placeholder="Enter Vote Name"
       />
-      {/* 날짜 선택 */}
+      <div className="mb-4">
+        {/* 날짜 선택 */}
+        <DateSelector
+          selectedDates={selectedDates}
+          setSelectedDates={setSelectedDates}
+        />
+        <label>Selected Dates:</label>
+        <div className="flex flex-col">
+          {selectedDates.map((v) => (
+            <span key={v}>{v}</span>
+          ))}
+        </div>
+      </div>
       {/* 시간대 선택 */}
       <div className="mb-4">
         <label>Time:</label>
