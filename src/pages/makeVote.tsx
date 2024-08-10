@@ -1,4 +1,4 @@
-import DateSelector from "@component/components/DateSelector";
+import DateSelector from "@components/DateSelector";
 import { useState } from "react";
 
 export default function MakeVote() {
