@@ -1,6 +1,10 @@
 import { useRef } from "react";
 
-export const useDrag = (updateSlot: (index: number) => void) => {
+export const useDrag = (
+  updateSlot: (index: number) => void,
+  rowCnt: number,
+  columnCnt: number
+) => {
   const dragging = useRef(false);
   const currentIndex = useRef<number | null>(null);
   const touchStarted = useRef(false); // 터치 이벤트, 마우스 이벤트 중복 실행 방지
@@ -27,13 +31,29 @@ export const useDrag = (updateSlot: (index: number) => void) => {
   };
 
   const getSlotIndexFromTouch = (
+    touchX: number,
     touchY: number,
     containerRef: React.RefObject<HTMLDivElement>
   ) => {
     if (!containerRef.current) return -1;
     const containerRect = containerRef.current.getBoundingClientRect();
-    const slotHeight = containerRect.height / 24;
-    return Math.floor((touchY - containerRect.top) / slotHeight);
+    const slotWidth = containerRect.width / columnCnt;
+    const slotHeight = containerRect.height / rowCnt;
+
+    const columnIndex = Math.floor((touchX - containerRect.left) / slotWidth);
+    const rowIndex = Math.floor((touchY - containerRect.top) / slotHeight);
+
+    // 유효한 인덱스인지 체크
+    if (
+      rowIndex < 0 ||
+      rowIndex >= rowCnt ||
+      columnIndex < 0 ||
+      columnIndex >= columnCnt
+    ) {
+      return -1;
+    }
+
+    return rowIndex * columnCnt + columnIndex; // 1D 인덱스 계산
   };
 
   const handleTouchMove = (
@@ -41,14 +61,18 @@ export const useDrag = (updateSlot: (index: number) => void) => {
     containerRef: React.RefObject<HTMLDivElement>
   ) => {
     touchStarted.current = false;
+    const touchX = e.touches[0].clientX;
     const touchY = e.touches[0].clientY;
-    const index = getSlotIndexFromTouch(touchY, containerRef);
+    const index = getSlotIndexFromTouch(touchX, touchY, containerRef);
+
     if (touchStarted.current) return;
     touchStarted.current = true;
+
     if (currentIndex.current === index) return;
     dragging.current = true;
     currentIndex.current = index;
-    if (index >= 0 && index < 24) handleMove(index);
+
+    if (index >= 0 && index < rowCnt * columnCnt) handleMove(index);
   };
 
   return {

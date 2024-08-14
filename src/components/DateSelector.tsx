@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useDrag } from "@hooks/useDrag";
+import React, { useState, useEffect, useRef } from "react";
 
 interface DateSelectorProps {
   selectedDates: string[];
@@ -11,7 +12,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
 }) => {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [datesGrid, setDatesGrid] = useState<(Date | null)[][]>([]);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     generateDatesGrid(currentMonth);
@@ -39,23 +40,6 @@ const DateSelector: React.FC<DateSelectorProps> = ({
     setDatesGrid(grid);
   };
 
-  const handleMouseDown = (date: Date | null) => {
-    if (date) {
-      setIsDragging(true);
-      toggleDateSelection(date);
-    }
-  };
-
-  const handleMouseOver = (date: Date | null) => {
-    if (isDragging && date) {
-      toggleDateSelection(date);
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
   const toggleDateSelection = (date: Date) => {
     const dateString = date.toDateString();
     setSelectedDates((prevSelected) => {
@@ -66,6 +50,22 @@ const DateSelector: React.FC<DateSelectorProps> = ({
       }
     });
   };
+
+  const updateSlot = (index: number) => {
+    const row = Math.floor(index / 7); // 7열 기준으로 행 계산
+    const col = index % 7; // 열 인덱스 계산
+    const date = datesGrid[row][col]; // 해당 날짜 가져오기
+    if (date) {
+      toggleDateSelection(date);
+    }
+  };
+
+  // useDrag 훅 사용
+  const { handleStart, handleMove, handleEnd, handleTouchMove } = useDrag(
+    updateSlot,
+    6,
+    7
+  );
 
   const handleDrag = (direction: "prev" | "next") => {
     const newMonth = new Date(currentMonth);
@@ -98,35 +98,39 @@ const DateSelector: React.FC<DateSelectorProps> = ({
   return (
     <div className="p-4">
       {/* 현재 월과 연도 표시 */}
-      <div className="text-center font-bold mb-2 w-[210px]">
+      <div className="text-center font-bold mb-2 w-[280px]">
         {getKoreanMonth(currentMonth.getMonth())} {currentMonth.getFullYear()}
       </div>
-      <div className="grid grid-cols-7 mb-2 w-[210px]">
+      <div className="grid grid-cols-7 mb-2 w-[280px]">
         {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
           <div key={day} className="text-center font-bold">
             {day}
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-7 w-[210px]">
+      <div className="grid grid-cols-7 w-[280px]" ref={containerRef}>
         {datesGrid.map((week, weekIndex) => (
           <React.Fragment key={weekIndex}>
-            {week.map((date, dayIndex) => (
-              <div
-                key={dayIndex}
-                className={`flex items-center justify-center border ${
-                  date && selectedDates.includes(date.toDateString())
-                    ? "bg-green-500 text-white"
-                    : "hover:bg-gray-200"
-                } cursor-pointer`}
-                onMouseDown={() => handleMouseDown(date)}
-                onMouseOver={() => handleMouseOver(date)}
-                onMouseUp={handleMouseUp}
-                style={{ width: "30px", height: "30px" }} // 셀 크기 설정
-              >
-                {date ? date.getDate() : ""}
-              </div>
-            ))}
+            {week.map((date, dayIndex) => {
+              const index = weekIndex * 7 + dayIndex; // 전체 인덱스 계산
+              return (
+                <div
+                  key={dayIndex}
+                  className={`flex items-center justify-center border ${
+                    date && selectedDates.includes(date.toDateString())
+                      ? "bg-green-500 text-white"
+                      : "hover:bg-gray-200"
+                  } cursor-pointer`}
+                  onMouseDown={() => handleStart(index)}
+                  onMouseEnter={() => handleMove(index)}
+                  onMouseUp={handleEnd}
+                  onTouchMove={(e) => handleTouchMove(e, containerRef)}
+                  style={{ width: "40px", height: "40px" }} // 셀 크기 설정
+                >
+                  {date ? date.getDate() : ""}
+                </div>
+              );
+            })}
           </React.Fragment>
         ))}
       </div>

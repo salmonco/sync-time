@@ -18,8 +18,11 @@ function TimeSlotSelector() {
     });
   };
 
-  const { handleStart, handleMove, handleEnd, handleTouchMove } =
-    useDrag(updateSlot);
+  const { handleStart, handleMove, handleEnd, handleTouchMove } = useDrag(
+    updateSlot,
+    24,
+    1
+  );
 
   return (
     <div className="grid grid-cols-1 gap-2" ref={containerRef}>
