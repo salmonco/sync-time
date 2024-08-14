@@ -35,6 +35,7 @@ export default function MakeVote() {
 
   const handleCreateVote = () => {
     console.log("투표이름", voteName);
+    console.log("날짜", selectedDates);
     console.log("시간대", startTime, endTime);
     console.log("장소", places);
     console.log("인원수", memberCnt);
