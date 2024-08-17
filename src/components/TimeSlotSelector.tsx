@@ -41,41 +41,65 @@ export default function TimeSlotSelector({
     TOTAL_DATES
   );
 
-  return (
-    <div
-      className="grid gap-2"
-      style={{
-        gridTemplateRows: `repeat(${TOTAL_SLOTS}, minmax(0, 1fr))`,
-        gridTemplateColumns: `repeat(${TOTAL_DATES}, minmax(0, 1fr))`,
-      }}
-      ref={containerRef}
-    >
-      {Array.from({ length: TOTAL_SLOTS }, (_, slotIndex) => (
-        <React.Fragment key={slotIndex}>
-          {Array.from({ length: TOTAL_DATES }, (_, dateIndex) => {
-            const index = slotIndex * TOTAL_DATES + dateIndex;
-            const hour = startTime + Math.floor(slotIndex / SLOTS_PER_HOUR);
-            const minute = (slotIndex % SLOTS_PER_HOUR) * SLOT_DURATION;
+  const MAX_CELL_WIDTH = 80;
 
-            return (
-              <div
-                key={dateIndex}
-                className={`p-4 border ${
-                  selectedSlots[slotIndex][dateIndex]
-                    ? "bg-blue-500"
-                    : "bg-white"
-                } cursor-pointer`}
-                onMouseDown={() => handleStart(index)}
-                onMouseEnter={() => handleMove(index)}
-                onMouseUp={handleEnd}
-                onTouchMove={(e) => handleTouchMove(e, containerRef)}
-              >
-                {hour}:{minute < 10 ? `0${minute}` : minute}
-              </div>
-            );
-          })}
-        </React.Fragment>
-      ))}
+  return (
+    <div>
+      <div
+        className="grid gap-2 mb-2"
+        style={{
+          gridTemplateColumns: `repeat(${TOTAL_DATES}, minmax(0, 1fr))`,
+          maxWidth: TOTAL_DATES * MAX_CELL_WIDTH,
+        }}
+      >
+        {selectedDates.map((date, index) => (
+          <div
+            key={index}
+            className="p-2 font-bold text-center"
+            style={{ maxWidth: MAX_CELL_WIDTH }}
+          >
+            {date}
+          </div>
+        ))}
+      </div>
+
+      <div
+        className="grid gap-2"
+        style={{
+          gridTemplateRows: `repeat(${TOTAL_SLOTS}, minmax(0, 1fr))`,
+          gridTemplateColumns: `repeat(${TOTAL_DATES}, minmax(0, 1fr))`,
+          maxWidth: TOTAL_DATES * MAX_CELL_WIDTH,
+        }}
+        ref={containerRef}
+      >
+        {Array.from({ length: TOTAL_SLOTS }, (_, slotIndex) => (
+          <React.Fragment key={slotIndex}>
+            {Array.from({ length: TOTAL_DATES }, (_, dateIndex) => {
+              const index = slotIndex * TOTAL_DATES + dateIndex;
+              const hour = startTime + Math.floor(slotIndex / SLOTS_PER_HOUR);
+              const minute = (slotIndex % SLOTS_PER_HOUR) * SLOT_DURATION;
+
+              return (
+                <div
+                  key={dateIndex}
+                  className={`p-2 border ${
+                    selectedSlots[slotIndex][dateIndex]
+                      ? "bg-blue-500"
+                      : "bg-white"
+                  } cursor-pointer`}
+                  style={{ maxWidth: MAX_CELL_WIDTH }}
+                  onMouseDown={() => handleStart(index)}
+                  onMouseEnter={() => handleMove(index)}
+                  onMouseUp={handleEnd}
+                  onTouchMove={(e) => handleTouchMove(e, containerRef)}
+                >
+                  {hour}:{minute < 10 ? `0${minute}` : minute}
+                </div>
+              );
+            })}
+          </React.Fragment>
+        ))}
+      </div>
     </div>
   );
 }
