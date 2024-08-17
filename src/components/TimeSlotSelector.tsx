@@ -1,27 +1,28 @@
 import { useDrag } from "@hooks/useDrag";
-import React, { useState, useRef } from "react";
+import React, { useRef, Dispatch, SetStateAction } from "react";
 
 type TimeSlotSelectorProps = {
+  selectedSlots: boolean[][];
+  setSelectedSlots: Dispatch<SetStateAction<boolean[][]>>;
   selectedDates: string[];
   startTime: number;
   endTime: number;
+  SLOT_DURATION: number;
+  SLOTS_PER_HOUR: number;
+  TOTAL_SLOTS: number;
+  TOTAL_DATES: number;
 };
 export default function TimeSlotSelector({
+  selectedSlots,
+  setSelectedSlots,
   selectedDates,
   startTime,
   endTime,
+  SLOT_DURATION,
+  SLOTS_PER_HOUR,
+  TOTAL_SLOTS,
+  TOTAL_DATES,
 }: Readonly<TimeSlotSelectorProps>) {
-  const SLOT_DURATION = 30;
-  const SLOTS_PER_HOUR = 60 / SLOT_DURATION;
-  const HOUR_CNT = endTime - startTime;
-  const TOTAL_SLOTS = HOUR_CNT * SLOTS_PER_HOUR; // row cnt
-  const TOTAL_DATES = selectedDates.length; // column cnt
-
-  const [selectedSlots, setSelectedSlots] = useState<boolean[][]>(
-    Array.from({ length: TOTAL_SLOTS }, () =>
-      Array.from({ length: TOTAL_DATES }, () => false)
-    )
-  );
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const updateSlot = (index: number) => {
