@@ -1,7 +1,7 @@
 import { useDrag } from "@hooks/useDrag";
 import React, { useRef, Dispatch, SetStateAction } from "react";
 
-type TimeSlotSelectorProps = {
+interface TimeSlotSelectorProps {
   selectedSlots: boolean[][];
   setSelectedSlots: Dispatch<SetStateAction<boolean[][]>>;
   selectedDates: string[];
@@ -11,7 +11,8 @@ type TimeSlotSelectorProps = {
   SLOTS_PER_HOUR: number;
   TOTAL_SLOTS: number;
   TOTAL_DATES: number;
-};
+}
+
 export default function TimeSlotSelector({
   selectedSlots,
   setSelectedSlots,

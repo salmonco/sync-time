@@ -6,10 +6,10 @@ interface DateSelectorProps {
   setSelectedDates: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-const DateSelector: React.FC<DateSelectorProps> = ({
+export default function DateSelector({
   selectedDates,
   setSelectedDates,
-}) => {
+}: Readonly<DateSelectorProps>) {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [datesGrid, setDatesGrid] = useState<(Date | null)[][]>([]);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -150,6 +150,4 @@ const DateSelector: React.FC<DateSelectorProps> = ({
       </div>
     </div>
   );
-};
-
-export default DateSelector;
+}
