@@ -37,6 +37,51 @@ export default function Vote() {
   const [selectedPlaceIdx, setSelectedPlaceIdx] = useState(0);
   const [inputId, setInputId] = useState("");
   const [userId, setUserId] = useState("");
+  const [result, setResult] = useState<string[][][]>([]);
+
+  const calculateSelectedTimes = (
+    resultSlots: boolean[][][],
+    placeIdx: number
+  ) => {
+    if (!voteData) return;
+
+    const selectedTimes: string[][] = Array.from(
+      { length: voteData.selectedDates.length },
+      () => []
+    );
+
+    resultSlots.forEach((rows, rowIdx) => {
+      rows.forEach((cols, colIdx) => {
+        cols.forEach((isSelected, placeIndex) => {
+          if (isSelected && placeIndex === placeIdx) {
+            const hour =
+              voteData.startTime + Math.floor(rowIdx / SLOTS_PER_HOUR);
+            const minute = (rowIdx % SLOTS_PER_HOUR) * SLOT_DURATION;
+
+            const formattedTime = `${hour >= 12 ? "오후" : "오전"} ${
+              hour % 12 || 12
+            }시 ${minute}분`;
+            selectedTimes[colIdx].push(formattedTime);
+          }
+        });
+      });
+    });
+
+    return selectedTimes;
+  };
+
+  const getTimes = (resultSlots: boolean[][][]) => {
+    if (!voteData) return;
+
+    const times: string[][][] = [];
+    voteData.places.forEach((place, placeIdx) => {
+      const selectedTimes = calculateSelectedTimes(resultSlots, placeIdx);
+      if (selectedTimes) {
+        times.push(selectedTimes);
+      }
+    });
+    return times;
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -65,48 +110,57 @@ export default function Vote() {
     fetchVoteData();
   }, [id]);
 
-  const handlePlaceClick = (idx: number) => {
-    setSelectedPlaceIdx(idx);
-  };
-
-  const calculateSelectedTimes = (placeIdx: number) => {
+  useEffect(() => {
     if (!voteData) return;
-    const selectedTimes: string[][] = Array.from(
-      { length: voteData.selectedDates.length },
-      () => []
-    );
 
-    selectedSlots.forEach((rows, rowIdx) => {
-      rows.forEach((cols, colIdx) => {
-        cols.forEach((isSelected, placeIndex) => {
-          if (isSelected && placeIndex === placeIdx) {
-            const hour =
-              voteData.startTime + Math.floor(rowIdx / SLOTS_PER_HOUR);
-            const minute = (rowIdx % SLOTS_PER_HOUR) * SLOT_DURATION;
+    const calculateResult = async () => {
+      try {
+        if (!db) {
+          console.log("firestore db is null");
+          return;
+        }
+        const ansCollection = collection(db, "ans");
+        const q = query(ansCollection, where("voteId", "==", id));
+        const querySnapshot = await getDocs(q);
 
-            const formattedTime = `${hour >= 12 ? "오후" : "오전"} ${
-              hour % 12 || 12
-            }시 ${minute}분`;
-            selectedTimes[colIdx].push(formattedTime);
+        if (querySnapshot.empty) {
+          console.log("아무도 투표를 하지 않아서 투표 결과가 없습니다.");
+          return;
+        }
+
+        const overlappedSlots: boolean[][][] = Array.from(
+          { length: TOTAL_SLOTS },
+          () =>
+            Array.from({ length: voteData.selectedDates.length }, () =>
+              Array.from({ length: voteData.places.length }, () => true)
+            )
+        );
+        querySnapshot.forEach((doc) => {
+          console.log(doc.id, "=>", doc.data());
+          const { selectedSlots, rowCnt, dateCnt, placeCnt } = doc.data();
+          const slots = flattenTo3D(selectedSlots, rowCnt, dateCnt, placeCnt);
+          for (let r = 0; r < rowCnt; r++) {
+            for (let c = 0; c < dateCnt; c++) {
+              for (let p = 0; p < placeCnt; p++) {
+                overlappedSlots[r][c][p] &&= slots[r][c][p];
+              }
+            }
           }
         });
-      });
-    });
-
-    return selectedTimes;
-  };
-
-  const getTimes = () => {
-    if (!voteData) return;
-
-    const times: string[][][] = [];
-    voteData.places.forEach((place, placeIdx) => {
-      const selectedTimes = calculateSelectedTimes(placeIdx);
-      if (selectedTimes) {
-        times.push(selectedTimes);
+        const result = getTimes(overlappedSlots);
+        console.log("result", result);
+        if (result) {
+          setResult(result);
+        }
+      } catch (error) {
+        console.error("투표 결과 계산 실패", error);
       }
-    });
-    return times;
+    };
+    calculateResult();
+  }, [voteData, userId]);
+
+  const handlePlaceClick = (idx: number) => {
+    setSelectedPlaceIdx(idx);
   };
 
   const flattenTo3D = (
@@ -167,6 +221,15 @@ export default function Vote() {
         await setDoc(docRef, ansData, { merge: true });
       }
       console.log("투표 저장 성공:", ansData);
+      alert("투표가 저장되었습니다.");
+      setUserId("");
+      setSelectedSlots(
+        Array.from({ length: TOTAL_SLOTS }, () =>
+          Array.from({ length: voteData.selectedDates.length }, () =>
+            Array.from({ length: voteData.places.length }, () => false)
+          )
+        )
+      );
     } catch (error) {
       console.error("투표 저장 실패:", error);
     }
@@ -257,18 +320,42 @@ export default function Vote() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleLogin}>
-              <h2 className="text-xl">로그인해 주세요.</h2>
-              <input
-                type="text"
-                value={inputId}
-                onChange={(e) => setInputId(e.target.value)}
-                className="border"
-              />
-              <button className="bg-blue-500 text-white px-4 py-2 rounded">
-                로그인하기
-              </button>
-            </form>
+            <div className="flex flex-col gap-4">
+              <form onSubmit={handleLogin}>
+                <h2 className="text-xl">로그인해 주세요.</h2>
+                <input
+                  type="text"
+                  value={inputId}
+                  onChange={(e) => setInputId(e.target.value)}
+                  className="border"
+                />
+                <button className="bg-blue-500 text-white px-4 py-2 rounded">
+                  로그인하기
+                </button>
+              </form>
+              <div className="flex flex-col gap-8">
+                {result.length &&
+                  result.map((dates, placeIdx) => (
+                    <div key={`place ${placeIdx}`}>
+                      <span className="text-[1.8rem]">
+                        {voteData.places[placeIdx]}
+                      </span>
+                      <div className="flex flex-col gap-3">
+                        {dates.map((times, dateIdx) => (
+                          <div key={`date ${dateIdx}`}>
+                            <span>{voteData.selectedDates[dateIdx]}</span>
+                            <div className="flex flex-col">
+                              {times.map((time, timeIdx) => (
+                                <span key={`time ${timeIdx}`}>{time}</span>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
           )}
         </div>
         <div>
