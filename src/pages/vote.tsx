@@ -38,6 +38,7 @@ export default function Vote() {
   const [inputId, setInputId] = useState("");
   const [userId, setUserId] = useState("");
   const [result, setResult] = useState<string[][][]>([]);
+  const [currentMemberCnt, setCurrentMemberCnt] = useState(0);
 
   const calculateSelectedTimes = (
     resultSlots: boolean[][][],
@@ -135,6 +136,7 @@ export default function Vote() {
               Array.from({ length: voteData.places.length }, () => true)
             )
         );
+        let currentMemberCnt = 0;
         querySnapshot.forEach((doc) => {
           console.log(doc.id, "=>", doc.data());
           const { selectedSlots, rowCnt, dateCnt, placeCnt } = doc.data();
@@ -146,7 +148,9 @@ export default function Vote() {
               }
             }
           }
+          currentMemberCnt++;
         });
+        setCurrentMemberCnt(currentMemberCnt);
         const result = getTimes(overlappedSlots);
         console.log("result", result);
         if (result) {
@@ -397,7 +401,9 @@ export default function Vote() {
 
           <div className="mb-6">
             <h2 className="text-xl">참여 인원 수</h2>
-            <p>{voteData.memberCnt}명</p>
+            <p>
+              {currentMemberCnt} / {voteData.memberCnt}명
+            </p>
           </div>
 
           <div className="mt-4">
