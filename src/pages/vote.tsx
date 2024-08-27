@@ -2,7 +2,16 @@ import TimeSlotSelector from "@components/TimeSlotSelector";
 import { VOTE_DATA } from "@constants/voteConfig";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { doc, getDoc, collection, addDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  setDoc,
+} from "firebase/firestore";
 import { db } from "@firebase/firebaseClient";
 
 interface VoteProps {
@@ -26,30 +35,31 @@ export default function Vote() {
   const [voteData, setVoteData] = useState<VoteProps | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<boolean[][][]>([]);
   const [selectedPlaceIdx, setSelectedPlaceIdx] = useState(0);
+  const [inputId, setInputId] = useState("");
+  const [userId, setUserId] = useState("");
 
   useEffect(() => {
+    if (!id) return;
     const fetchVoteData = async () => {
-      if (id) {
-        if (!db) {
-          console.log("firestore db is null");
-          return;
-        }
-        const docRef = doc(db, "votes", id as string);
-        const docSnap = await getDoc(docRef);
+      if (!db) {
+        console.log("firestore db is null");
+        return;
+      }
+      const docRef = doc(db, "votes", id as string);
+      const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-          const voteData = docSnap.data();
-          setVoteData(voteData as VoteProps);
-          setSelectedSlots(
-            Array.from({ length: TOTAL_SLOTS }, () =>
-              Array.from({ length: voteData.selectedDates.length }, () =>
-                Array.from({ length: voteData.places.length }, () => false)
-              )
+      if (docSnap.exists()) {
+        const voteData = docSnap.data();
+        setVoteData(voteData as VoteProps);
+        setSelectedSlots(
+          Array.from({ length: TOTAL_SLOTS }, () =>
+            Array.from({ length: voteData.selectedDates.length }, () =>
+              Array.from({ length: voteData.places.length }, () => false)
             )
-          );
-        } else {
-          console.log("문서가 존재하지 않습니다.");
-        }
+          )
+        );
+      } else {
+        console.log("문서가 존재하지 않습니다.");
       }
     };
     fetchVoteData();
@@ -127,7 +137,7 @@ export default function Vote() {
       const flattenedSlots = selectedSlots.flat(2);
 
       const ansData = {
-        userId: "me",
+        userId,
         voteId: id,
         selectedSlots: flattenedSlots,
         rowCnt: TOTAL_SLOTS,
@@ -140,7 +150,22 @@ export default function Vote() {
         console.log("firestore db is null");
         return;
       }
-      await addDoc(collection(db, "ans"), ansData);
+
+      const ansCollection = collection(db, "ans");
+      const q = query(
+        ansCollection,
+        where("voteId", "==", id),
+        where("userId", "==", userId)
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        await addDoc(ansCollection, ansData);
+      } else {
+        const existingDoc = querySnapshot.docs[0];
+        const docRef = doc(db, "ans", existingDoc.id);
+        await setDoc(docRef, ansData, { merge: true });
+      }
       console.log("투표 저장 성공:", ansData);
     } catch (error) {
       console.error("투표 저장 실패:", error);
@@ -149,6 +174,60 @@ export default function Vote() {
 
   const handleMakeVote = () => {
     router.push("/makeVote");
+  };
+
+  const handleLogin = () => {
+    if (!inputId.trim()) {
+      alert("아이디를 입력해 주세요.");
+      setInputId("");
+      return;
+    }
+
+    const fetchAnsData = async () => {
+      try {
+        if (!db) {
+          console.log("firestore db is null");
+          return;
+        }
+        const ansCollection = collection(db, "ans");
+        const q = query(
+          ansCollection,
+          where("voteId", "==", id),
+          where("userId", "==", inputId)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          console.log("해당 문서가 없습니다.");
+          return;
+        }
+
+        querySnapshot.forEach((doc) => {
+          console.log(doc.id, "=>", doc.data());
+          const { selectedSlots, rowCnt, dateCnt, placeCnt } = doc.data();
+          const slots = flattenTo3D(selectedSlots, rowCnt, dateCnt, placeCnt);
+          setSelectedSlots(slots);
+        });
+      } catch (error) {
+        console.error("오류 발생: ", error);
+      }
+    };
+    fetchAnsData();
+    setUserId(inputId);
+    setInputId("");
+  };
+
+  const handleLogout = () => {
+    if (!voteData) return;
+
+    setUserId("");
+    setSelectedSlots(
+      Array.from({ length: TOTAL_SLOTS }, () =>
+        Array.from({ length: voteData.selectedDates.length }, () =>
+          Array.from({ length: voteData.places.length }, () => false)
+        )
+      )
+    );
   };
 
   if (!voteData)
@@ -165,53 +244,83 @@ export default function Vote() {
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">{voteData.voteName}</h1>
 
-      <div className="mb-6">
-        <h2 className="text-xl">가능한 시간을 체크해 주세요.</h2>
-        <TimeSlotSelector
-          selectedSlots={selectedSlots}
-          setSelectedSlots={setSelectedSlots}
-          selectedDates={voteData.selectedDates}
-          startTime={voteData.startTime}
-          endTime={voteData.endTime}
-          SLOT_DURATION={SLOT_DURATION}
-          SLOTS_PER_HOUR={SLOTS_PER_HOUR}
-          TOTAL_SLOTS={TOTAL_SLOTS}
-          selectedPlaceIdx={selectedPlaceIdx}
-        />
-      </div>
-
-      <div className="mb-6">
-        <h2 className="text-xl">장소</h2>
-        <div className="flex flex-wrap gap-4">
-          {voteData.places.map((place, index) => (
-            <button
-              key={index}
-              type="button"
-              className={`py-2 px-4 rounded-full border ${
-                selectedPlaceIdx === index
-                  ? "bg-green-500 text-white"
-                  : "border-green-500 text-green-500"
-              }`}
-              onClick={() => handlePlaceClick(index)}
-            >
-              {place}
-            </button>
-          ))}
+      <div className="flex justify-around">
+        <div>
+          {userId ? (
+            <div>
+              <h2>{userId}님 안녕하세요.</h2>
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+                onClick={handleLogout}
+              >
+                로그아웃
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleLogin}>
+              <h2 className="text-xl">로그인해 주세요.</h2>
+              <input
+                type="text"
+                value={inputId}
+                onChange={(e) => setInputId(e.target.value)}
+                className="border"
+              />
+              <button className="bg-blue-500 text-white px-4 py-2 rounded">
+                로그인하기
+              </button>
+            </form>
+          )}
         </div>
-      </div>
+        <div>
+          <div className="mb-6">
+            <h2 className="text-xl">가능한 시간을 체크해 주세요.</h2>
+            <TimeSlotSelector
+              selectedSlots={selectedSlots}
+              setSelectedSlots={setSelectedSlots}
+              selectedDates={voteData.selectedDates}
+              startTime={voteData.startTime}
+              endTime={voteData.endTime}
+              SLOT_DURATION={SLOT_DURATION}
+              SLOTS_PER_HOUR={SLOTS_PER_HOUR}
+              TOTAL_SLOTS={TOTAL_SLOTS}
+              selectedPlaceIdx={selectedPlaceIdx}
+            />
+          </div>
 
-      <div className="mb-6">
-        <h2 className="text-xl">참여 인원 수</h2>
-        <p>{voteData.memberCnt}명</p>
-      </div>
+          <div className="mb-6">
+            <h2 className="text-xl">장소</h2>
+            <div className="flex flex-wrap gap-4">
+              {voteData.places.map((place, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  className={`py-2 px-4 rounded-full border ${
+                    selectedPlaceIdx === index
+                      ? "bg-green-500 text-white"
+                      : "border-green-500 text-green-500"
+                  }`}
+                  onClick={() => handlePlaceClick(index)}
+                >
+                  {place}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      <div className="mt-4">
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-          onClick={handleVoteSave}
-        >
-          투표하기
-        </button>
+          <div className="mb-6">
+            <h2 className="text-xl">참여 인원 수</h2>
+            <p>{voteData.memberCnt}명</p>
+          </div>
+
+          <div className="mt-4">
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+              onClick={handleVoteSave}
+            >
+              투표하기
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
