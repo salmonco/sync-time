@@ -334,26 +334,27 @@ export default function Vote() {
                 </button>
               </form>
               <div className="flex flex-col gap-8">
-                {result.length &&
-                  result.map((dates, placeIdx) => (
-                    <div key={`place ${placeIdx}`}>
-                      <span className="text-[1.8rem]">
-                        {voteData.places[placeIdx]}
-                      </span>
-                      <div className="flex flex-col gap-3">
-                        {dates.map((times, dateIdx) => (
-                          <div key={`date ${dateIdx}`}>
-                            <span>{voteData.selectedDates[dateIdx]}</span>
-                            <div className="flex flex-col">
-                              {times.map((time, timeIdx) => (
-                                <span key={`time ${timeIdx}`}>{time}</span>
-                              ))}
+                {result.length
+                  ? result.map((dates, placeIdx) => (
+                      <div key={`place ${placeIdx}`}>
+                        <span className="text-[1.8rem]">
+                          {voteData.places[placeIdx]}
+                        </span>
+                        <div className="flex flex-col gap-3">
+                          {dates.map((times, dateIdx) => (
+                            <div key={`date ${dateIdx}`}>
+                              <span>{voteData.selectedDates[dateIdx]}</span>
+                              <div className="flex flex-col">
+                                {times.map((time, timeIdx) => (
+                                  <span key={`time ${timeIdx}`}>{time}</span>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  : null}
               </div>
             </div>
           )}
