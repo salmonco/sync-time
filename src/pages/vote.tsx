@@ -185,7 +185,7 @@ export default function Vote() {
   };
 
   const handleVoteSave = async () => {
-    if (!voteData) return;
+    if (!voteData || !userId) return;
 
     try {
       const flattenedSlots = selectedSlots.flat(2);
@@ -401,8 +401,9 @@ export default function Vote() {
 
           <div className="mt-4">
             <button
-              className="bg-blue-500 text-white px-4 py-2 rounded"
+              className="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
               onClick={handleVoteSave}
+              disabled={!voteData || !userId}
             >
               투표하기
             </button>
