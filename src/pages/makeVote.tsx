@@ -1,4 +1,7 @@
 import DateSelector from "@components/DateSelector";
+import { db } from "@firebase/firebaseClient";
+import { collection, addDoc } from "firebase/firestore";
+import { useRouter } from "next/router";
 import { useState } from "react";
 
 export default function MakeVote() {
@@ -9,6 +12,7 @@ export default function MakeVote() {
   const [places, setPlaces] = useState<string[]>([]);
   const [newPlace, setNewPlace] = useState("");
   const [memberCnt, setMemberCnt] = useState(1);
+  const router = useRouter();
 
   const calcTime = (n: number) => {
     if (n === 0 || n === 24) return "12:00 AM";
@@ -33,12 +37,38 @@ export default function MakeVote() {
     );
   };
 
-  const handleCreateVote = () => {
-    console.log("투표이름", voteName);
-    console.log("날짜", selectedDates);
-    console.log("시간대", startTime, endTime);
-    console.log("장소", places);
-    console.log("인원수", memberCnt);
+  const handleCreateVote = async () => {
+    try {
+      const voteData = {
+        voteName,
+        selectedDates,
+        startTime,
+        endTime,
+        places,
+        memberCnt,
+      };
+
+      // Firestore에 데이터 저장
+      if (!db) {
+        console.log("firestore db is null");
+        return;
+      }
+      const docRef = await addDoc(collection(db, "votes"), voteData);
+      const documentId = docRef.id;
+      console.log("투표 생성 성공:", voteData, documentId);
+
+      // 입력 필드 초기화
+      setVoteName("");
+      setSelectedDates([]);
+      setStartTime(9);
+      setEndTime(22);
+      setPlaces([]);
+      setMemberCnt(1);
+
+      router.push(`/vote?id=${documentId}`);
+    } catch (error) {
+      console.error("투표 생성 실패:", error);
+    }
   };
 
   return (

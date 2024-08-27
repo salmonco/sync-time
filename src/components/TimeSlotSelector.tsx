@@ -10,7 +10,6 @@ interface TimeSlotSelectorProps {
   SLOT_DURATION: number;
   SLOTS_PER_HOUR: number;
   TOTAL_SLOTS: number;
-  TOTAL_DATES: number;
   selectedPlaceIdx: number;
 }
 
@@ -23,9 +22,9 @@ export default function TimeSlotSelector({
   SLOT_DURATION,
   SLOTS_PER_HOUR,
   TOTAL_SLOTS,
-  TOTAL_DATES,
   selectedPlaceIdx,
 }: Readonly<TimeSlotSelectorProps>) {
+  const TOTAL_DATES = selectedDates.length;
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const updateSlot = (index: number) => {
