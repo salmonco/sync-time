@@ -8,12 +8,59 @@ export default function Vote() {
   const HOUR_CNT = VOTE_DATA.endTime - VOTE_DATA.startTime;
   const TOTAL_SLOTS = HOUR_CNT * SLOTS_PER_HOUR; // row cnt
   const TOTAL_DATES = VOTE_DATA.selectedDates.length; // column cnt
+  const selectedDates = VOTE_DATA.selectedDates;
+  const startTime = VOTE_DATA.startTime;
+  const endTime = VOTE_DATA.endTime;
+  const places = VOTE_DATA.places;
 
-  const [selectedSlots, setSelectedSlots] = useState<boolean[][]>(
+  const [selectedSlots, setSelectedSlots] = useState<boolean[][][]>(
     Array.from({ length: TOTAL_SLOTS }, () =>
-      Array.from({ length: TOTAL_DATES }, () => false)
+      Array.from({ length: TOTAL_DATES }, () =>
+        Array.from({ length: places.length }, () => false)
+      )
     )
   );
+  const [selectedPlaceIdx, setSelectedPlaceIdx] = useState(0);
+
+  const handlePlaceClick = (idx: number) => {
+    setSelectedPlaceIdx(idx);
+  };
+
+  const calculateSelectedTimes = (placeIdx: number) => {
+    const selectedTimes: string[][] = Array.from(
+      { length: selectedDates.length },
+      () => []
+    );
+
+    selectedSlots.forEach((rows, rowIdx) => {
+      rows.forEach((cols, colIdx) => {
+        cols.forEach((isSelected, placeIndex) => {
+          if (isSelected && placeIndex === placeIdx) {
+            const hour = startTime + Math.floor(rowIdx / SLOTS_PER_HOUR);
+            const minute = (rowIdx % SLOTS_PER_HOUR) * SLOT_DURATION;
+
+            const formattedTime = `${hour >= 12 ? "오후" : "오전"} ${
+              hour % 12 || 12
+            }시 ${minute}분`;
+            selectedTimes[colIdx].push(formattedTime);
+          }
+        });
+      });
+    });
+
+    return selectedTimes;
+  };
+
+  const handleVote = () => {
+    const times: string[][][] = [];
+    places.forEach((place, placeIdx) => {
+      const selectedTimes = calculateSelectedTimes(placeIdx);
+      // console.log("선택된 시간", selectedTimes);
+      // console.log("장소", place);
+      times.push(selectedTimes);
+    });
+    console.log(times);
+  };
 
   return (
     <div className="p-4">
@@ -24,23 +71,35 @@ export default function Vote() {
         <TimeSlotSelector
           selectedSlots={selectedSlots}
           setSelectedSlots={setSelectedSlots}
-          selectedDates={VOTE_DATA.selectedDates}
-          startTime={VOTE_DATA.startTime}
-          endTime={VOTE_DATA.endTime}
+          selectedDates={selectedDates}
+          startTime={startTime}
+          endTime={endTime}
           SLOT_DURATION={SLOT_DURATION}
           SLOTS_PER_HOUR={SLOTS_PER_HOUR}
           TOTAL_SLOTS={TOTAL_SLOTS}
           TOTAL_DATES={TOTAL_DATES}
+          selectedPlaceIdx={selectedPlaceIdx}
         />
       </div>
 
       <div className="mb-6">
         <h2 className="text-xl">장소</h2>
-        <ul className="list-disc list-inside">
+        <div className="flex flex-wrap gap-4">
           {VOTE_DATA.places.map((place, index) => (
-            <li key={index}>{place}</li>
+            <button
+              key={index}
+              type="button"
+              className={`py-2 px-4 rounded-full border ${
+                selectedPlaceIdx === index
+                  ? "bg-green-500 text-white"
+                  : "border-green-500 text-green-500"
+              }`}
+              onClick={() => handlePlaceClick(index)}
+            >
+              {place}
+            </button>
           ))}
-        </ul>
+        </div>
       </div>
 
       <div className="mb-6">
@@ -48,9 +107,11 @@ export default function Vote() {
         <p>{VOTE_DATA.memberCnt}명</p>
       </div>
 
-      {/* 추가적인 투표 기능 구현 부분 */}
       <div className="mt-4">
-        <button className="bg-blue-500 text-white px-4 py-2 rounded">
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+          onClick={handleVote}
+        >
           투표하기
         </button>
       </div>

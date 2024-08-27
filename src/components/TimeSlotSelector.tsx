@@ -2,8 +2,8 @@ import { useDrag } from "@hooks/useDrag";
 import React, { useRef, Dispatch, SetStateAction } from "react";
 
 interface TimeSlotSelectorProps {
-  selectedSlots: boolean[][];
-  setSelectedSlots: Dispatch<SetStateAction<boolean[][]>>;
+  selectedSlots: boolean[][][];
+  setSelectedSlots: Dispatch<SetStateAction<boolean[][][]>>;
   selectedDates: string[];
   startTime: number;
   endTime: number;
@@ -11,6 +11,7 @@ interface TimeSlotSelectorProps {
   SLOTS_PER_HOUR: number;
   TOTAL_SLOTS: number;
   TOTAL_DATES: number;
+  selectedPlaceIdx: number;
 }
 
 export default function TimeSlotSelector({
@@ -23,6 +24,7 @@ export default function TimeSlotSelector({
   SLOTS_PER_HOUR,
   TOTAL_SLOTS,
   TOTAL_DATES,
+  selectedPlaceIdx,
 }: Readonly<TimeSlotSelectorProps>) {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -32,7 +34,8 @@ export default function TimeSlotSelector({
     const col = index % TOTAL_DATES;
     setSelectedSlots((slots) => {
       const newSlots = [...slots];
-      newSlots[row][col] = !newSlots[row][col];
+      newSlots[row][col][selectedPlaceIdx] =
+        !newSlots[row][col][selectedPlaceIdx];
       return newSlots;
     });
   };
@@ -85,7 +88,7 @@ export default function TimeSlotSelector({
                 <div
                   key={dateIndex}
                   className={`p-2 border ${
-                    selectedSlots[slotIndex][dateIndex]
+                    selectedSlots[slotIndex][dateIndex][selectedPlaceIdx]
                       ? "bg-blue-500"
                       : "bg-white"
                   } cursor-pointer`}
