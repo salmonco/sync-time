@@ -254,7 +254,8 @@ export default function Vote() {
 
   const handleLogin = () => {
     if (!inputId.trim()) {
-      alert("아이디를 입력해 주세요.");
+      // alert("아이디를 입력해 주세요.");
+      openModal("아이디를 입력해 주세요.");
       setInputId("");
       return;
     }
