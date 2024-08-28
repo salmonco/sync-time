@@ -1,6 +1,6 @@
 import TimeSlotSelector from "@components/TimeSlotSelector";
 import { VOTE_DATA } from "@constants/voteConfig";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import {
   doc,
@@ -13,6 +13,8 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { db } from "@firebase/firebaseClient";
+import LayerPopup from "@components/LayerPopup";
+import { useModal } from "@hooks/useModal";
 
 interface VoteProps {
   voteName: string;
@@ -26,6 +28,9 @@ interface VoteProps {
 export default function Vote() {
   const router = useRouter();
   const { id } = router.query;
+
+  const modalRef = useRef(null);
+  const { isModalOpen, modalText, openModal, closeModal } = useModal();
 
   const SLOT_DURATION = 30;
   const SLOTS_PER_HOUR = 60 / SLOT_DURATION;
@@ -300,7 +305,8 @@ export default function Vote() {
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      alert(`${text}${"\n"}클립보드에 복사되었습니다.`);
+      // alert(`${text}${"\n"} 클립보드에 복사되었습니다.`);
+      openModal(`"${text}" 클립보드에 복사되었습니다.`);
     } catch (error) {
       console.error(error);
     }
@@ -440,6 +446,22 @@ export default function Vote() {
           </div>
         </div>
       </div>
+
+      {isModalOpen && (
+        <div
+          className="fixed top-0 left-0 w-full z-30 bg-black/40 h-full flex justify-center items-center"
+          ref={modalRef}
+          onClick={(e) => {
+            if (e.target === modalRef.current) closeModal();
+          }}
+        >
+          <LayerPopup
+            text={modalText}
+            btnText={"확인"}
+            callbackFn={closeModal}
+          />
+        </div>
+      )}
     </div>
   );
 }
