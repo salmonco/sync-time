@@ -161,8 +161,11 @@ export default function MakeVote() {
       </div>
       {/* 투표 생성 */}
       <button
-        className="bg-blue-500 text-white px-4 py-2"
+        className="bg-blue-500 text-white px-4 py-2 disabled:bg-gray-400"
         onClick={handleCreateVote}
+        disabled={
+          !voteName.trim() || selectedDates.length === 0 || places.length === 0
+        }
       >
         Create Vote
       </button>
