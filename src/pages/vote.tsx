@@ -297,6 +297,20 @@ export default function Vote() {
     );
   };
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert(`${text}${"\n"}클립보드에 복사되었습니다.`);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleCopyClick = () => {
+    const textToCopy = `https://sync-time.vercel.app/vote?id=${id}`;
+    copyToClipboard(textToCopy);
+  };
+
   if (!voteData)
     return (
       <div className="h-[100vh] flex flex-col justify-center items-center">
@@ -308,8 +322,17 @@ export default function Vote() {
     );
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">{voteData.voteName}</h1>
+    <div className="p-4 flex flex-col gap-10">
+      <div className="flex gap-10">
+        <h1 className="text-2xl font-bold mb-4">{voteData.voteName}</h1>
+        <button
+          type="button"
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+          onClick={handleCopyClick}
+        >
+          링크복사 click!
+        </button>
+      </div>
 
       <div className="flex justify-around">
         <div>
