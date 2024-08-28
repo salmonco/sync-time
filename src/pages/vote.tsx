@@ -343,10 +343,10 @@ export default function Vote() {
         </button>
       </div>
 
-      <div className="flex justify-around">
+      <div className="flex justify-around gap-6">
         <div>
           {userId ? (
-            <div>
+            <div className="flex flex-col gap-4">
               <h2>{userId}님 안녕하세요.</h2>
               <button
                 className="bg-blue-500 text-white px-4 py-2 rounded"
@@ -357,13 +357,13 @@ export default function Vote() {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              <form onSubmit={handleLogin}>
+              <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 <h2 className="text-xl">로그인해 주세요.</h2>
                 <input
                   type="text"
                   value={inputId}
                   onChange={(e) => setInputId(e.target.value)}
-                  className="border"
+                  className="border p-2"
                 />
                 <button className="bg-blue-500 text-white px-4 py-2 rounded">
                   로그인하기
@@ -397,18 +397,10 @@ export default function Vote() {
         </div>
         <div>
           <div className="mb-6">
-            <h2 className="text-xl">가능한 시간을 체크해 주세요.</h2>
-            <TimeSlotSelector
-              selectedSlots={selectedSlots}
-              setSelectedSlots={setSelectedSlots}
-              selectedDates={voteData.selectedDates}
-              startTime={voteData.startTime}
-              endTime={voteData.endTime}
-              SLOT_DURATION={SLOT_DURATION}
-              SLOTS_PER_HOUR={SLOTS_PER_HOUR}
-              TOTAL_SLOTS={total_slots.current}
-              selectedPlaceIdx={selectedPlaceIdx}
-            />
+            <h2 className="text-xl">참여 인원 수</h2>
+            <p>
+              {currentMemberCnt} / {voteData.memberCnt}명
+            </p>
           </div>
 
           <div className="mb-6">
@@ -432,10 +424,18 @@ export default function Vote() {
           </div>
 
           <div className="mb-6">
-            <h2 className="text-xl">참여 인원 수</h2>
-            <p>
-              {currentMemberCnt} / {voteData.memberCnt}명
-            </p>
+            <h2 className="text-xl">가능한 시간을 체크해 주세요.</h2>
+            <TimeSlotSelector
+              selectedSlots={selectedSlots}
+              setSelectedSlots={setSelectedSlots}
+              selectedDates={voteData.selectedDates}
+              startTime={voteData.startTime}
+              endTime={voteData.endTime}
+              SLOT_DURATION={SLOT_DURATION}
+              SLOTS_PER_HOUR={SLOTS_PER_HOUR}
+              TOTAL_SLOTS={total_slots.current}
+              selectedPlaceIdx={selectedPlaceIdx}
+            />
           </div>
 
           <div className="mt-4">
