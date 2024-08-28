@@ -1,5 +1,4 @@
 import TimeSlotSelector from "@components/TimeSlotSelector";
-import { VOTE_DATA } from "@constants/voteConfig";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import {
@@ -34,8 +33,8 @@ export default function Vote() {
 
   const SLOT_DURATION = 30;
   const SLOTS_PER_HOUR = 60 / SLOT_DURATION;
-  const HOUR_CNT = VOTE_DATA.endTime - VOTE_DATA.startTime;
-  const TOTAL_SLOTS = HOUR_CNT * SLOTS_PER_HOUR; // row cnt
+  const hour_cnt = useRef(0);
+  const total_slots = useRef(0);
 
   const [voteData, setVoteData] = useState<VoteProps | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<boolean[][][]>([]);
@@ -101,6 +100,10 @@ export default function Vote() {
 
       if (docSnap.exists()) {
         const voteData = docSnap.data();
+        const HOUR_CNT = voteData.endTime - voteData.startTime;
+        const TOTAL_SLOTS = HOUR_CNT * SLOTS_PER_HOUR; // row cnt
+        hour_cnt.current = HOUR_CNT;
+        total_slots.current = TOTAL_SLOTS;
         setVoteData(voteData as VoteProps);
         setSelectedSlots(
           Array.from({ length: TOTAL_SLOTS }, () =>
@@ -135,7 +138,7 @@ export default function Vote() {
         }
 
         const overlappedSlots: boolean[][][] = Array.from(
-          { length: TOTAL_SLOTS },
+          { length: total_slots.current },
           () =>
             Array.from({ length: voteData.selectedDates.length }, () =>
               Array.from({ length: voteData.places.length }, () => true)
@@ -203,7 +206,7 @@ export default function Vote() {
         userId,
         voteId: id,
         selectedSlots: flattenedSlots,
-        rowCnt: TOTAL_SLOTS,
+        rowCnt: total_slots.current,
         dateCnt: voteData.selectedDates.length,
         placeCnt: voteData.places.length,
       };
@@ -233,7 +236,7 @@ export default function Vote() {
       alert("투표가 저장되었습니다.");
       setUserId("");
       setSelectedSlots(
-        Array.from({ length: TOTAL_SLOTS }, () =>
+        Array.from({ length: total_slots.current }, () =>
           Array.from({ length: voteData.selectedDates.length }, () =>
             Array.from({ length: voteData.places.length }, () => false)
           )
@@ -294,7 +297,7 @@ export default function Vote() {
 
     setUserId("");
     setSelectedSlots(
-      Array.from({ length: TOTAL_SLOTS }, () =>
+      Array.from({ length: total_slots.current }, () =>
         Array.from({ length: voteData.selectedDates.length }, () =>
           Array.from({ length: voteData.places.length }, () => false)
         )
@@ -403,7 +406,7 @@ export default function Vote() {
               endTime={voteData.endTime}
               SLOT_DURATION={SLOT_DURATION}
               SLOTS_PER_HOUR={SLOTS_PER_HOUR}
-              TOTAL_SLOTS={TOTAL_SLOTS}
+              TOTAL_SLOTS={total_slots.current}
               selectedPlaceIdx={selectedPlaceIdx}
             />
           </div>
