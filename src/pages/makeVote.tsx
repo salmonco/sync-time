@@ -20,7 +20,7 @@ export default function MakeVote() {
     return `${n}:00 AM`;
   };
 
-  const handleAddPlace = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handlePlaceAdd = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       const trimmedPlace = newPlace.trim();
       // 중복 확인 및 유효성 검사
@@ -31,13 +31,13 @@ export default function MakeVote() {
     }
   };
 
-  const handleRemovePlace = (placeToRemove: string) => {
+  const handlePlaceRemove = (placeToRemove: string) => {
     setPlaces((prevPlaces) =>
       prevPlaces.filter((place) => place !== placeToRemove)
     );
   };
 
-  const handleCreateVote = async () => {
+  const handleVoteCreate = async () => {
     try {
       const voteData = {
         voteName,
@@ -127,7 +127,7 @@ export default function MakeVote() {
           type="text"
           value={newPlace}
           onChange={(e) => setNewPlace(e.target.value)}
-          onKeyUp={handleAddPlace}
+          onKeyUp={handlePlaceAdd}
           placeholder="Add a place and press Enter"
           className="border p-2"
         />
@@ -139,7 +139,7 @@ export default function MakeVote() {
             >
               {place}
               <button
-                onClick={() => handleRemovePlace(place)}
+                onClick={() => handlePlaceRemove(place)}
                 className="ml-2 text-red-500"
               >
                 ×
@@ -162,7 +162,7 @@ export default function MakeVote() {
       {/* 투표 생성 */}
       <button
         className="bg-blue-500 text-white px-4 py-2 disabled:bg-gray-400"
-        onClick={handleCreateVote}
+        onClick={handleVoteCreate}
         disabled={
           !voteName.trim() || selectedDates.length === 0 || places.length === 0
         }
