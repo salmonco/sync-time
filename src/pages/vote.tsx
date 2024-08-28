@@ -233,7 +233,8 @@ export default function Vote() {
         await setDoc(docRef, ansData, { merge: true });
       }
       console.log("투표 저장 성공:", ansData);
-      alert("투표가 저장되었습니다.");
+      // alert("투표가 저장되었습니다.");
+      openModal("투표가 저장되었습니다.");
       setUserId("");
       setSelectedSlots(
         Array.from({ length: total_slots.current }, () =>
