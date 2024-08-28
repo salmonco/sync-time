@@ -88,7 +88,7 @@ export default function TimeSlotSelector({
                   key={dateIndex}
                   className={`p-2 border ${
                     selectedSlots[slotIndex][dateIndex][selectedPlaceIdx]
-                      ? "bg-blue-500"
+                      ? "bg-green-500"
                       : "bg-white"
                   } cursor-pointer`}
                   style={{ maxWidth: MAX_CELL_WIDTH }}

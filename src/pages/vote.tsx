@@ -337,7 +337,7 @@ export default function Vote() {
         <h1 className="text-2xl font-bold mb-4">{voteData.voteName}</h1>
         <button
           type="button"
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="bg-green-500 text-white px-4 py-2 rounded"
           onClick={handleCopyClick}
         >
           링크복사 click!
@@ -350,7 +350,7 @@ export default function Vote() {
             <div className="flex flex-col gap-4">
               <h2>{userId}님 안녕하세요.</h2>
               <button
-                className="bg-blue-500 text-white px-4 py-2 rounded"
+                className="bg-green-500 text-white px-4 py-2 rounded"
                 onClick={handleLogout}
               >
                 로그아웃
@@ -366,7 +366,7 @@ export default function Vote() {
                   onChange={(e) => setInputId(e.target.value)}
                   className="border p-2"
                 />
-                <button className="bg-blue-500 text-white px-4 py-2 rounded">
+                <button className="bg-green-500 text-white px-4 py-2 rounded">
                   로그인하기
                 </button>
               </form>
@@ -441,7 +441,7 @@ export default function Vote() {
 
           <div className="mt-4">
             <button
-              className="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
+              className="bg-green-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
               onClick={handleVoteSave}
               disabled={!voteData || !userId}
             >

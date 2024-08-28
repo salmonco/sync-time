@@ -135,7 +135,7 @@ export default function MakeVote() {
           {places.map((place, index) => (
             <span
               key={index}
-              className="bg-blue-200 p-1 mr-2 rounded flex items-center"
+              className="bg-green-200 p-1 mr-2 rounded flex items-center"
             >
               {place}
               <button
@@ -161,7 +161,7 @@ export default function MakeVote() {
       </div>
       {/* 투표 생성 */}
       <button
-        className="bg-blue-500 text-white px-4 py-2 disabled:bg-gray-400"
+        className="bg-green-500 text-white px-4 py-2 disabled:bg-gray-400"
         onClick={handleVoteCreate}
         disabled={
           !voteName.trim() || selectedDates.length === 0 || places.length === 0

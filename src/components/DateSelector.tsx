@@ -136,13 +136,13 @@ export default function DateSelector({
       </div>
       <div className="flex justify-between mt-4 w-[280px]">
         <button
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="bg-green-500 text-white px-4 py-2 rounded"
           onClick={() => handleDrag("prev")}
         >
           이전 달
         </button>
         <button
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="bg-green-500 text-white px-4 py-2 rounded"
           onClick={() => handleDrag("next")}
         >
           다음 달
